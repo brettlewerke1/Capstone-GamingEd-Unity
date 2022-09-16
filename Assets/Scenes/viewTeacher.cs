@@ -9,12 +9,13 @@ public class viewTeacher : MonoBehaviour
 {
     public Text TeacherInformation;
     public Text TeacherName;
-        // Start is called before the first frame update
+
+    // Start is called before the first frame update
     void Start()
     {
         TeacherInformation.text = DbManager.AdminInformation;
         string[] adminInfo = DbManager.AdminInformation.Split(' ');
-        TeacherName.text = adminInfo[2];
+        TeacherName.text = adminInfo[1];
     }
 
      public void GoBack()
