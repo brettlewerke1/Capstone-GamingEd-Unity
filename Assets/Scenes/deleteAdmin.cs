@@ -49,7 +49,8 @@ public class deleteAdmin : MonoBehaviour
     {
         UnityEngine.SceneManagement.SceneManager.LoadScene(7);
     }
-        public void VerifyInputs()
+    
+    public void VerifyInputs()
     {
         SubmitButton.interactable = (UsernameField.text.Length >= 1);
     }
