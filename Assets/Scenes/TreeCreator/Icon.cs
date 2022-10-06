@@ -4,19 +4,21 @@ using UnityEngine;
 
 public class Icon : MonoBehaviour
 {
-    public int x = 0;
-    public int y = 0;
-    public int z = 0;
+    public float x = 0;
+    public float y = 0;
+    public float z = 0;
+    public bool isPlacable;
 
-    public Icon()
-    {
-        int x = 0;
-        int y = 0;
-        int z = 0;       
-    }
+    //public Icon()
+    //{
+   ///     int x = 0;
+   //     int y = 0;
+    //    int z = 0;
+   //     bool isPlacable = false;       
+   // }
     public Icon getSpawnCoords(string type)
     {
-        Icon returnVal = new Icon();
+        Icon returnVal = gameObject.GetComponent<Icon>();
         if(type == "Gate")
         {
 

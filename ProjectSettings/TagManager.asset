@@ -3,7 +3,20 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Gate
+  - Test
+  - Assignment
+  - Highlight
+  - HighlightUsed
+  - Down
+  - Up
+  - Left
+  - Right
+  - Gate Legend
+  - Assignment Legend
+  - Test Legend
+  - 'Edit '
   layers:
   - Default
   - TransparentFX
