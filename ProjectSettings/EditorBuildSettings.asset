@@ -4,53 +4,5 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes:
-  - enabled: 1
-    path: Assets/Scenes/mainMenu.unity
-    guid: 1bf85c05801b75d4480b880e405ebe77
-  - enabled: 1
-    path: Assets/Scenes/registerMenu.unity
-    guid: 8b9252d93862d0d4db79ec4a9484e3f3
-  - enabled: 1
-    path: Assets/Scenes/logInMenu.unity
-    guid: b726074ec72a4f6439497f2d9cb29360
-  - enabled: 1
-    path: Assets/Scenes/game.unity
-    guid: 4443624652595c04ea577fa591cbe6f9
-  - enabled: 1
-    path: Assets/Scenes/homeSuperAdminMenu.unity
-    guid: d586ba0fefd7612438e283f24ff67b4b
-  - enabled: 1
-    path: Assets/Scenes/viewTeachers.unity
-    guid: 720fa47441e373c4492ef395944c43d5
-  - enabled: 1
-    path: Assets/Scenes/homeAdminMenu.unity
-    guid: eb9d715160f391e4c8322eacbd94938a
-  - enabled: 1
-    path: Assets/Scenes/viewTeacher.unity
-    guid: bf9928c6971ff2246a1a98c8027fba06
-  - enabled: 1
-    path: Assets/Scenes/deleteAdmin.unity
-    guid: d5db9b5929a6c754f873373a69e999c1
-  - enabled: 1
-    path: Assets/Scenes/viewCourses.unity
-    guid: 18137c4c911c1fa458650e2be0452a6a
-  - enabled: 1
-    path: Assets/Scenes/viewCourse.unity
-    guid: e1fc183b8d9630549b61dcb4e5f5719b
-<<<<<<< Updated upstream
-=======
-  - enabled: 1
-    path: Assets/Scenes/TreeCreator/EditAssignmentIcon.unity
-    guid: 5b4dbc37df1a5764896d04a6ed687634
-  - enabled: 1
-    path: Assets/Scenes/TreeCreator/MainCourseCreator.unity
-    guid: 3db6b2c5478919747ba36f8f3fd94bb3
-  - enabled: 1
-    path: Assets/Scenes/TreeCreator/EditAssessmentIcon.unity
-    guid: f5c9f6eb9d9929e47976ebfdc571427a
-  - enabled: 1
-    path: Assets/Scenes/TreeCreator/AssessmentPage.unity
-    guid: 5b40fbea2918e3b4892cf74ece270d25
->>>>>>> Stashed changes
+  m_Scenes: []
   m_configObjects: {}
