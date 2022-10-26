@@ -38,4 +38,19 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/viewCourse.unity
     guid: e1fc183b8d9630549b61dcb4e5f5719b
+<<<<<<< Updated upstream
+=======
+  - enabled: 1
+    path: Assets/Scenes/TreeCreator/EditAssignmentIcon.unity
+    guid: 5b4dbc37df1a5764896d04a6ed687634
+  - enabled: 1
+    path: Assets/Scenes/TreeCreator/MainCourseCreator.unity
+    guid: 3db6b2c5478919747ba36f8f3fd94bb3
+  - enabled: 1
+    path: Assets/Scenes/TreeCreator/EditAssessmentIcon.unity
+    guid: f5c9f6eb9d9929e47976ebfdc571427a
+  - enabled: 1
+    path: Assets/Scenes/TreeCreator/AssessmentPage.unity
+    guid: 5b40fbea2918e3b4892cf74ece270d25
+>>>>>>> Stashed changes
   m_configObjects: {}

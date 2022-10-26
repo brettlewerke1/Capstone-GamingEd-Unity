@@ -3,7 +3,36 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
+<<<<<<< Updated upstream
   tags: []
+=======
+  tags:
+  - Gate
+  - Test
+  - Assignment
+  - Highlight
+  - HighlightUsed
+  - Down
+  - Up
+  - Left
+  - Right
+  - Gate Legend
+  - Assignment Legend
+  - Test Legend
+  - 'Edit '
+  - EditButtonIcon
+  - DeleteButtonIcon
+  - Canvas
+  - MultipleChoice
+  - MultipleChoiceInput
+  - Fill_in_Blank
+  - Matching
+  - InputField
+  - Button
+  - QuestionInputField
+  - MatchingObjectChild
+  - Upload
+>>>>>>> Stashed changes
   layers:
   - Default
   - TransparentFX
