@@ -9,6 +9,8 @@ public class AnswerAttributes : MonoBehaviour
 
         public bool hasBeenUsed = false;
 
+        public int Level_Num;
+
 
     
 }

@@ -38,19 +38,28 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/viewCourse.unity
     guid: e1fc183b8d9630549b61dcb4e5f5719b
-<<<<<<< Updated upstream
-=======
-  - enabled: 1
-    path: Assets/Scenes/TreeCreator/EditAssignmentIcon.unity
+  - enabled: 0
+    path: 
     guid: 5b4dbc37df1a5764896d04a6ed687634
   - enabled: 1
     path: Assets/Scenes/TreeCreator/MainCourseCreator.unity
     guid: 3db6b2c5478919747ba36f8f3fd94bb3
   - enabled: 1
     path: Assets/Scenes/TreeCreator/EditAssessmentIcon.unity
-    guid: f5c9f6eb9d9929e47976ebfdc571427a
+    guid: 3a7270bb4845cba46a05561c408320c6
+  - enabled: 1
+    path: Assets/Scenes/TreeCreator/EditAssignmentIcon.unity
+    guid: a14db87733a602f45bfa1759ea270058
   - enabled: 1
     path: Assets/Scenes/TreeCreator/AssessmentPage.unity
-    guid: 5b40fbea2918e3b4892cf74ece270d25
->>>>>>> Stashed changes
+    guid: b0e8f90762348aa44bcabc6e9189315e
+  - enabled: 1
+    path: Assets/Scenes/TreeCreator/CourseCreation.unity
+    guid: 49b034ebd4c572d48a35229bb763b4a3
+  - enabled: 1
+    path: Assets/Scenes/viewStudent.unity
+    guid: 467b5b416705e3f43bc7a46d44109b79
+  - enabled: 1
+    path: Assets/Scenes/TreeCreator/ValueUnlockHelpScene.unity
+    guid: 159f3c0de2e73ee49b32deee0c80f65a
   m_configObjects: {}

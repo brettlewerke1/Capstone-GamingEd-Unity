@@ -3,9 +3,6 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-<<<<<<< Updated upstream
-  tags: []
-=======
   tags:
   - Gate
   - Test
@@ -20,19 +17,23 @@ TagManager:
   - Assignment Legend
   - Test Legend
   - 'Edit '
+  - MultipleChoiceInput
+  - QuestionInputField
+  - MultipleChoice
+  - Matching
+  - Fill_in_Blank
+  - InputField
+  - Rows
+  - AssignmentRow
+  - Upload
   - EditButtonIcon
   - DeleteButtonIcon
-  - Canvas
-  - MultipleChoice
-  - MultipleChoiceInput
-  - Fill_in_Blank
-  - Matching
-  - InputField
+  - Assessment
+  - ViewCourse
   - Button
-  - QuestionInputField
-  - MatchingObjectChild
-  - Upload
->>>>>>> Stashed changes
+  - MatchingInput
+  - Fill_in_BlankInput
+  - GateConfirm
   layers:
   - Default
   - TransparentFX

@@ -27,7 +27,7 @@ public class DropDownHandler : MonoBehaviour
     void Start()
     {
         dropdown = transform.GetComponent<TMP_Dropdown>();
-        DropdownItemSelected(dropdown);
+        //DropdownItemSelected(dropdown);
         dropdown.onValueChanged.AddListener(delegate {DropdownItemSelected(dropdown);});   
 
     }
@@ -37,29 +37,39 @@ public class DropDownHandler : MonoBehaviour
     {
         int index = dropdown.value;
         string selectedOption = dropdown.options[index].text;
+        GameObject mainAssessmentObj = GameObject.Find("MainAssessment");
+        // if(PlayerPrefs.GetString("QuestionType")== null)
+        // {
+        //     selectedOption = dropdown.options[index].text;
+        // }
+        // else
+        // {
+        //     selectedOption = PlayerPrefs.GetString("QuestionType");
+        // }
+
         Vector3 dropdownLocalLocation = dropdown.transform.localPosition;
         Vector3 dropdownLocation = dropdown.transform.position;
+
+        //SET QUESTION TYPE
         PlayerPrefs.SetString("QuestionType", selectedOption);
 
         if(selectedOption == "Multiple Choice")
         {
-            DeleteObjectsByChunk(dropdownLocalLocation);
+            //DeleteObjectsByChunk(dropdownLocalLocation);
             gameobject = GameObject.FindWithTag("MultipleChoice");
             // find the correct position to spawn in object
-            dropdownLocation.y -= 50;
-            dropdownLocation.x -= 100;
             //spawn new multiple choice quesiton
             //GameObject newObject = Instantiate(gameobject, dropdownLocation ,Quaternion.identity);
             //set parent
-            setParent(gameobject, GameObject.Find("MainAssessment"));
-
+            setParent(gameobject, mainAssessmentObj);
+            Vector3 tempLocation = mainAssessmentObj.transform.localPosition;
+            tempLocation.y -= 300;
+            gameobject.transform.localPosition = tempLocation;
             //move other objects back to unloaded objects
             gameobject = GameObject.FindWithTag("Fill_in_Blank");
             setParent(gameobject,GameObject.Find("UnloadedObjects"));
             gameobject = GameObject.FindWithTag("Matching");
             setParent(gameobject,GameObject.Find("UnloadedObjects"));
-            
-
             PlayerPrefs.DeleteKey("TypeOfQuestion");
             PlayerPrefs.SetString("TypeOfQuestion", "MultipleChoice");
 
@@ -67,20 +77,19 @@ public class DropDownHandler : MonoBehaviour
         }
         else if(selectedOption == "Fill_in_Blank")
         {
-            DeleteObjectsByChunk(dropdownLocalLocation);
             gameobject = GameObject.FindWithTag("Fill_in_Blank");
-            dropdownLocation.y -= 100;
             //spawn new multiple choice quesiton
             //GameObject newObject = Instantiate(gameobject, dropdownLocation,Quaternion.identity);
             //set new parent
-            setParent(gameobject, GameObject.Find("MainAssessment"));
-            
+            setParent(gameobject, mainAssessmentObj);
+            Vector3 tempLocation = mainAssessmentObj.transform.localPosition;
+            tempLocation.y -= 300;
+            gameobject.transform.localPosition = tempLocation;
             //move other objects back to unloaded objects
             gameobject = GameObject.FindWithTag("MultipleChoice");
             setParent(gameobject,GameObject.Find("UnloadedObjects"));
             gameobject = GameObject.FindWithTag("Matching");
             setParent(gameobject,GameObject.Find("UnloadedObjects"));
-
 
             PlayerPrefs.DeleteKey("TypeOfQuestion");
             PlayerPrefs.SetString("TypeOfQuestion", "Fill_in_Blank");
@@ -88,15 +97,14 @@ public class DropDownHandler : MonoBehaviour
         }
         else if(selectedOption == "Matching")
         {
-            DeleteObjectsByChunk(dropdownLocalLocation);
             gameobject = GameObject.FindWithTag("Matching");
-            dropdownLocation.y -=100;
-            dropdownLocation.x +=3000;
             //spawn new multiple choice quesiton
             ///GameObject newObject = Instantiate(gameobject, dropdownLocation,Quaternion.identity);
             //set new parent
-            setParent(gameobject, GameObject.Find("MainAssessment"));
-
+            setParent(gameobject, mainAssessmentObj);
+            Vector3 tempLocation = mainAssessmentObj.transform.localPosition;
+            tempLocation.y -= 300;
+            gameobject.transform.localPosition = tempLocation;
             //move other objects back to unloaded objects
             gameobject = GameObject.FindWithTag("MultipleChoice");
             setParent(gameobject,GameObject.Find("UnloadedObjects"));
@@ -109,86 +117,6 @@ public class DropDownHandler : MonoBehaviour
 
         }
 
-    }
-
-    public void moveOtherObjects(string selectedOption)
-    {
-        GameObject tempObject;
-        if(selectedOption == "Multiple Choice")
-        {
-            tempObject = GameObject.FindWithTag("Fill_in_Blank");
-            tempObject.transform.position = Fill_in_BlankLocation;
-            tempObject = GameObject.FindWithTag("Matching");
-            tempObject.transform.position = MatchingLocation;
-        }
-        else if(selectedOption == "Fill_in_Blank")
-        {
-            tempObject = GameObject.FindWithTag("MultipleChoice");
-            tempObject.transform.position = Fill_in_BlankLocation;
-            tempObject = GameObject.FindWithTag("Matching");
-            tempObject.transform.position = MatchingLocation;
-        }
-        else if(selectedOption == "Matching")
-        {
-            tempObject = GameObject.FindWithTag("Fill_in_Blank");
-            tempObject.transform.position = Fill_in_BlankLocation;
-            tempObject = GameObject.FindWithTag("MultipleChoice");
-            tempObject.transform.position = MatchingLocation;
-        }
-
-    }
-
-    public void DeleteObjectsByChunk(Vector3 topPosition)
-    {
-        //find the new question object
-        GameObject newQuestion = GameObject.Find("NewQuestion");
-        Vector3 bottomPostion = newQuestion.transform.localPosition;
-        Debug.Log(topPosition);
-        Debug.Log(bottomPostion);
-        // loop through all objects
-        foreach (GameObject go in GameObject.FindGameObjectsWithTag("MultipleChoice"))
-        {
-
-
-         //if object is between top location and new question location
-          if(go.transform.localPosition.y <= topPosition.y && go.transform.localPosition.y >= bottomPostion.y)
-          {
-            Destroy(go);
-
-            Debug.Log(go.name);
-            Debug.Log(go.transform.localPosition);
-            
-
-          }
-        }
-        foreach (GameObject go in GameObject.FindGameObjectsWithTag("Fill_in_Blank"))
-        {
-
-
-         //if object is between top location and new question location
-          if(go.transform.localPosition.y < topPosition.y && go.transform.localPosition.y > bottomPostion.y)
-          {
-            Destroy(go);
-
-            Debug.Log(go.name);
-            Debug.Log(go.transform.localPosition);
-            
-
-          }
-        }
-        foreach (GameObject go in GameObject.FindGameObjectsWithTag("Matching"))
-        {
-
-
-         //if object is between top location and new question location
-          if(go.transform.localPosition.y < topPosition.y && go.transform.localPosition.y > bottomPostion.y)
-          {
-            Destroy(go);
-
-            Debug.Log(go.name);
-            Debug.Log(go.transform.localPosition);
-          }
-        }
     }
 
     public void setParent(GameObject childObject, GameObject parentObject)
