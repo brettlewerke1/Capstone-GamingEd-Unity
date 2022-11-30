@@ -11,59 +11,87 @@ using UnityEngine.SceneManagement;
 public class SaveDataHandler : MonoBehaviour
 {
     [SerializeField] public CourseData _Course = new CourseData();
-
-
-
-    public void SaveIntoJson()
+    public void SaveGateIntoJson()
     {
-        Debug.Log(_Course);
+        string Course = JsonUtility.ToJson(_Course);
+        System.IO.File.WriteAllText(PlayerPrefs.GetString("FilePath"), Course);
+    }
+
+    public void SaveAssignmentIntoJson()
+    {
+        string Course = JsonUtility.ToJson(_Course);
+        System.IO.File.WriteAllText(PlayerPrefs.GetString("FilePath"), Course);
+    }
+
+
+
+    public void SaveAssessmentIntoJson()
+    {
+        Debug.Log(Application.persistentDataPath);
         string Course = JsonUtility.ToJson(_Course);
         System.IO.File.WriteAllText( PlayerPrefs.GetString("FilePath"), Course);
     }
 
-    public void UpdateJson(string FilePath)
+    public void UpdateAssessmentJson(string FilePath)
     {
         SaveDataHandler save = new SaveDataHandler();
-        
-        Debug.Log("Ready to update");
-
         //save question type
         save._Course.MODULE.ASSESSMENTS.QUESTION.newQuestionList(PlayerPrefs.GetInt("QuestionNumber"), PlayerPrefs.GetString("QuestionName"), PlayerPrefs.GetString("QuestionType"));
-        Debug.Log(save._Course.MODULE.ASSESSMENTS.QUESTION.questions[0].QuestionName);
+        //Debug.Log(save._Course.MODULE.ASSESSMENTS.QUESTION.questions[0].QuestionName);
         if(PlayerPrefs.GetString("QuestionType") == "Multiple Choice")
         {
-           foreach (GameObject go in GameObject.FindGameObjectsWithTag("MultipleChoice") as GameObject[])
+           foreach (GameObject go in GameObject.FindGameObjectsWithTag("MultipleChoiceInput") as GameObject[])
             {
                 // loop through answers and save them
                 save._Course.MODULE.ASSESSMENTS.QUESTION.
                 questions[0].
                 updateMultipleChoicesList(go.GetComponent<AnswerAttributes>().number,
-                                  go.transform.GetChild(0).GetChild(0).gameObject.GetComponent<TMP_InputField>().text,
-                                  go.transform.GetChild(0).GetChild(1).gameObject.GetComponent<Toggle>().isOn,
-                                  int.Parse(go.transform.GetChild(0).GetChild(5).GetComponent<TMP_InputField>().text));
-            
+                                  go.transform.GetChild(0).gameObject.GetComponent<TMP_InputField>().text,
+                                  go.transform.GetChild(1).gameObject.GetComponent<Toggle>().isOn,
+                                  int.Parse(go.transform.GetChild(5).GetComponent<TMP_InputField>().text),
+                                  int.Parse(go.transform.GetChild(6).GetComponent<TMP_InputField>().text));
+                //parameters are int answerNumber, string multipleChoiceAnswer, bool isCorrectAnswer, int points, int coins, int attempts
             
 
             } 
         }
         else if(PlayerPrefs.GetString("QuestionType") == "Matching")
         {
-            foreach (GameObject go in GameObject.FindGameObjectsWithTag("Matching") as GameObject[])
+            foreach (GameObject go in GameObject.FindGameObjectsWithTag("MatchingInput") as GameObject[])
             {
                 // loop through answers and save them
                 save._Course.MODULE.ASSESSMENTS.QUESTION.
                 questions[0].
                 updateMatchingChoicesList(go.GetComponent<AnswerAttributes>().number,
-                                          go.transform.GetChild(0).GetChild(0).gameObject.GetComponent<TMP_InputField>().text,
-                                          go.transform.GetChild(0).GetChild(2).gameObject.GetComponent<TMP_InputField>().text,
-                                          int.Parse(go.transform.GetChild(0).GetChild(4).gameObject.GetComponent<TMP_InputField>().text));
+                                          go.transform.GetChild(0).gameObject.GetComponent<TMP_InputField>().text,
+                                          go.transform.GetChild(2).gameObject.GetComponent<TMP_InputField>().text,
+                                          int.Parse(go.transform.GetChild(6).gameObject.GetComponent<TMP_InputField>().text),
+                                          int.Parse(go.transform.GetChild(5).gameObject.GetComponent<TMP_InputField>().text));
             
             
 
             }
 
         }
+        else if(PlayerPrefs.GetString("QuestionType") == "Fill_in_Blank")
+        {
+            foreach (GameObject go in GameObject.FindGameObjectsWithTag("Fill_in_Blank") as GameObject[])
+            {
+                // loop through answers and save them
+                save._Course.MODULE.ASSESSMENTS.QUESTION.
+                questions[0].fillBlankChoices.QuestionAnswer = go.transform.GetChild(0).GetChild(0).gameObject.GetComponent<TMP_InputField>().text;
 
+                save._Course.MODULE.ASSESSMENTS.QUESTION.
+                questions[0].fillBlankChoices.Coins = int.Parse(go.transform.GetChild(0).GetChild(1).gameObject.GetComponent<TMP_InputField>().text);   
+
+                save._Course.MODULE.ASSESSMENTS.QUESTION.
+                questions[0].fillBlankChoices.Points = int.Parse(go.transform.GetChild(0).GetChild(2).gameObject.GetComponent<TMP_InputField>().text);           
+            
+
+            }
+            
+
+        }
         Question saveData = save._Course.MODULE.ASSESSMENTS.QUESTION.questions[0];
         Question emptyQuestion = new Question();
         string JsonString;
@@ -74,6 +102,7 @@ public class SaveDataHandler : MonoBehaviour
             {
                 var json = sr.ReadToEnd();                                                                                                                                                                                                                                                                                                                                  
                 var JsonObject = JsonUtility.FromJson<CourseData>(json);
+                //string type = JsonObject.Type;
                 //string stringNum = PlayerPrefs.GetString("QuestionNumber");
                 //Debug.Log(stringNum);
                 //int questionNum = int.Parse();
@@ -94,8 +123,6 @@ public class SaveDataHandler : MonoBehaviour
             }
         }
         System.IO.File.WriteAllText(PlayerPrefs.GetString("FilePath"), JsonString);
-
-
     }
 
 
@@ -104,6 +131,8 @@ public class SaveDataHandler : MonoBehaviour
     public class CourseData
     {
         public string CourseName = "";
+
+        public string Type;
 
         public Module MODULE = new Module();
 
@@ -120,8 +149,30 @@ public class SaveDataHandler : MonoBehaviour
 
         public Assessments ASSESSMENTS = new Assessments();
 
+        public Assignments ASSIGNMENT = new Assignments();
+
+        public Gate GATE = new Gate();
 
 
+
+    }
+
+    [System.Serializable]
+    public class Assignments
+    {
+        public string AssignmentName = "";
+
+        public string DueDate;
+
+        public string Description = " ";
+
+        public string Points;
+
+        public string UnlockCriteriaType = "Attempt";
+
+        public string UnlockCriteriaValue = "3";
+
+        public string Coins;
     }
 
     [System.Serializable]
@@ -130,6 +181,16 @@ public class SaveDataHandler : MonoBehaviour
         public string AssessmentName = "";
 
         public string DueDate;
+
+        public string UnlockCriteriaAttempts = "Attempts";
+
+        public string UnlockCriteriaAttemptsValue = "3";
+
+        public string UnlockCriteriaScore = "Score";
+
+        public string UnlockCriteriaScoreValue = "60";
+
+        public bool DisplayAnswers;
 
         public QuestionObj QUESTION = new QuestionObj();
 
@@ -166,29 +227,40 @@ public class SaveDataHandler : MonoBehaviour
 
         public List<MultipleChoice> multipleChoices = new List<MultipleChoice>();
 
-        public List<Fill_in_Blank> fillBlankChoices = new List<Fill_in_Blank>();
+        public Fill_in_Blank fillBlankChoices = new Fill_in_Blank();
 
         public List<Matching> matchingChoices = new List<Matching>();
 
-        public void updateMultipleChoicesList(int answerNumber, string multipleChoiceAnswer, bool isCorrectAnswer, int points)
+        public void updateMultipleChoicesList(int answerNumber, string multipleChoiceAnswer, bool isCorrectAnswer, int points, int coins)
         {
             MultipleChoice answer = new MultipleChoice();
             answer.AnswerNumber = answerNumber;
             answer.AnswerName = multipleChoiceAnswer;
             answer.CorrectAnswer = isCorrectAnswer;
             answer.Points = points;
+            answer.Coins = coins;
             multipleChoices.Add(answer);
-            Debug.Log("IM ASS");
         }
 
-        public void updateMatchingChoicesList(int answerNumber, string leftTwin, string rightTwin, int points)
+        public void deleteMultipleChoiceFromList(int index)
+        {
+            multipleChoices.RemoveAt(index);
+        }
+
+        public void updateMatchingChoicesList(int answerNumber, string leftTwin, string rightTwin, int points,int coins)
         {
             Matching answer = new Matching();
             answer.AnswerNumber = answerNumber;
             answer.leftTwin = leftTwin;
             answer.rightTwin = rightTwin;
             answer.Points = points;
+            answer.Coins = coins;
             matchingChoices.Add(answer);
+        }
+
+        public void deleteMatchingChoiceFromList(int index)
+        {
+            multipleChoices.RemoveAt(index);
         }
 
     }
@@ -203,14 +275,19 @@ public class SaveDataHandler : MonoBehaviour
 
         public int Points;
 
+        public int Coins;
+
     }
 
     [System.Serializable]
     public class Fill_in_Blank
     {
-        public string QuestionName = "";
 
         public string QuestionAnswer="";
+
+        public int Points;
+
+        public int Coins;
 
     }
 
@@ -222,7 +299,10 @@ public class SaveDataHandler : MonoBehaviour
 
         public string rightTwin = "";
 
+        public int Coins;
+
         public int Points;
+
 
     }
     // Start is called before the first frame update

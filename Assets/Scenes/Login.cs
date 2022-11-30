@@ -39,16 +39,20 @@ public class Login : MonoBehaviour
 
                     DbManager.Role = Role;
 
-                    if(Role == "superadmin")
+                    if(Role == "superAdmin")
                     {
+                        PlayerPrefs.SetString("LoggedIn", "true");
                         UnityEngine.SceneManagement.SceneManager.LoadScene(4);
                     }
                     else if(Role == "admin")
                     {
+                        PlayerPrefs.SetString("LoggedIn", "true");
+                        PlayerPrefs.SetString("AdminUsername", DbManager.username);
                         UnityEngine.SceneManagement.SceneManager.LoadScene(6);
                     }
                     else
                     {
+                    PlayerPrefs.SetString("LoggedIn", "false");
                     UnityEngine.SceneManagement.SceneManager.LoadScene(0);
                     }
 
@@ -69,5 +73,11 @@ public class Login : MonoBehaviour
     public void VerifyInputs()
     {
         submitButton.interactable = (nameField.text.Length >= 1 && passwordField.text.Length >= 1);
+    }
+
+    public void GoBack()
+    {
+        PlayerPrefs.SetString("LoggedIn", "false");
+        UnityEngine.SceneManagement.SceneManager.LoadScene("mainMenu");
     }
 }

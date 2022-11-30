@@ -1,51 +1,107 @@
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System;
+using TMPro;
 using UnityEngine;
-<<<<<<< Updated upstream
-=======
 using UnityEngine.SceneManagement;
 using UnityEngine.Networking;
 
->>>>>>> Stashed changes
 
 public class Grabber : MonoBehaviour {
 
-    private GameObject selectedObject;
+    public GameObject selectedObject;
+
+    public GameObject objectToBeEdited;
+
+    public GameObject highlightObject;
+
+    public GameObject gateObject;
+
+    public GameObject tempObject;
+
+    public GameObject objFromLoad;
+
+    public Material tempMaterial;
 
     public Icon iconObject;
 
+    public TMP_Text CourseName;
+
+    public string LocationString;
+
+    public Mesh tempMesh;
+
     private void Start()
     {
-<<<<<<< Updated upstream
-        iconObject = new Icon();
-=======
         iconObject = gameObject.AddComponent<Icon>();
-        DontDestroyOnLoad(iconObject);
+
+        CourseName.text = PlayerPrefs.GetString("ClassTag");
+        LoadObjectsFromJson();
+        PlayerPrefs.SetString("ModuleSelect", "false");
 
         ///DELETE ME
-        PlayerPrefs.SetString("CourseName", "CS486");
+        
 
         //something = validLocationList;
         Debug.Log("Awake() is called");
 
->>>>>>> Stashed changes
     }
     
-    private void Update() {
-
+    private void Update() 
+    {
         if (Input.GetMouseButtonDown(0)) {
             if(selectedObject == null) {
                 RaycastHit hit = CastRay();
 
                 if(hit.collider != null) {
-<<<<<<< Updated upstream
-                    if (hit.collider.CompareTag("Gate")) 
-=======
-
-                    Debug.Log(hit.collider.gameObject.transform.position.x.ToString());
                     if (hit.collider.gameObject.name == "EditButtonIcon") 
                     {
                         //tempObject = hit.collider.gameObject;
                         flashWithHighlight("EditButtonIcon");
-                        LoadCorrectScene(hit.collider.gameObject, objectToBeEdited);
+                        //-----------Assignment or Assessment----------//
+                        if(objectToBeEdited.tag == "Assessment" || objectToBeEdited.tag == "Assignment")
+                        {
+                            // conver the location to string to be looked up in JSON
+                            LocationString = ConvertLocationToString(objectToBeEdited.transform.position);
+                            //save playerprefs of the location of the objectToBeEdited
+                            PlayerPrefs.SetString("ObjectToBeEditedLocation", LocationString);
+                            //save the level number in player prefs in order to be passed into next scene
+                            if(objectToBeEdited.tag == "Assessment")
+                            {
+                                PlayerPrefs.SetInt("LevelNumber", objectToBeEdited.GetComponent<AssessmentAttributes>().LevelNum);
+
+                            }
+                            else if(objectToBeEdited.tag == "Assignment")
+                            {
+                                PlayerPrefs.SetInt("LevelNumber", objectToBeEdited.GetComponent<AssignmentAttributes>().LevelNum);
+                            }
+
+                            //now load the correct scene
+                            LoadCorrectScene(hit.collider.gameObject, objectToBeEdited);
+                        }
+                        // --------------Gate Icon--------------------//
+                        else
+                        {
+                            // we need to move the edit and delete objects away and move confirm over
+                            PlayerPrefs.SetString("ModuleSelect", "true");
+                            GameObject tmpObject = GameObject.Find("EditButtonIcon");
+                            tmpObject.transform.position = new Vector3(0,0,10000);
+                            changeMaterial(tmpObject, Resources.Load("Materials/Transparent_Material", typeof(Material)) as Material);
+                            tmpObject = GameObject.Find("DeleteButtonIcon");
+                            tmpObject.transform.position = new Vector3(0,0,10300);
+                            changeMaterial( tmpObject,Resources.Load("Materials/Transparent_Material", typeof(Material)) as Material);
+                            tmpObject = GameObject.Find("ConfirmButtonIcon");
+                            // do some positioning now for the confirm button
+                            Vector3 locationOfGate = objectToBeEdited.transform.position;
+                            locationOfGate.z += 50;
+                            locationOfGate.y +=300;
+                            locationOfGate.x -= 550;
+                            tmpObject.transform.position = locationOfGate;
+                            Debug.Log("Module select is true");
+
+                        }
                         selectedObject = null;
                     }
                     else if (hit.collider.gameObject.name == "DeleteButtonIcon") 
@@ -54,76 +110,171 @@ public class Grabber : MonoBehaviour {
                         // change the object to be selected back to highlight
                         // remove all highlight nodes around it
                         changeMaterial(objectToBeEdited, Resources.Load("Materials/Transparent_Material", typeof(Material)) as Material);
+                        changeMesh(objectToBeEdited);
+                        //strip the script that has the object attributes in it
+                        StripAttributeScript(objectToBeEdited);
                         objectToBeEdited.tag = "Highlight";
                         de_spawnHighlight(objectToBeEdited.transform.position);
+                        // convert the location to string to be looked up in JSON
+                        LocationString = ConvertLocationToString(objectToBeEdited.transform.position);
+                        DeleteFileAtLocation(LocationString);
 
                         selectedObject = null;
                     }
+                    else if(hit.collider.CompareTag("GateConfirm"))
+                    {
+                        //flashWithHighlight("ConfirmButtonIcon");
+                        //TODO: do stuff here
+                        tempObject = GameObject.Find("ConfirmButtonIcon");
+                        tempObject.transform.position = new Vector3(0,300,10700);
+                        UnHighlightIcons();
+                        PlayerPrefs.SetString("ModuleSelect", "false");
+                        SaveGate(gateObject);
+                    }
                     else if (hit.collider.CompareTag("Gate Legend")) 
->>>>>>> Stashed changes
                     {
                         selectedObject = hit.collider.gameObject;
                         iconObject = iconObject.getSpawnCoords("Gate");
-                        Debug.Log(iconObject.x);
+                        //Debug.Log(iconObject.x);
                         Cursor.visible = false;
-<<<<<<< Updated upstream
-                    }
-                    else if (hit.collider.CompareTag("Assignment")) 
-=======
-
-                        Debug.Log("Im hiot");
+                        highlightAreas();
 
                     }  
                     else if (hit.collider.CompareTag("Assignment Legend")) 
->>>>>>> Stashed changes
                     {
                         selectedObject = hit.collider.gameObject;
                         iconObject = iconObject.getSpawnCoords("Assignment");
-                        Cursor.visible = false;                      
+                        Cursor.visible = false;      
+                        highlightAreas();                
                     }
-                    else if (hit.collider.CompareTag("Test")) 
+                    else if (hit.collider.CompareTag("Test Legend")) 
                     {
                         selectedObject = hit.collider.gameObject;
-                        iconObject = iconObject.getSpawnCoords("Test");
-                        Cursor.visible = false;                      
+                        iconObject = iconObject.getSpawnCoords("Assessment");
+                        Cursor.visible = false;    
+                        highlightAreas();                  
                     }                   
-                    else{
-                        return;
-                    }
-<<<<<<< Updated upstream
-=======
                     else if(hit.collider.CompareTag("Upload"))
                     {
-                        selectedObject = hit.collider.gameObject;
-                        UploadToDB();
+                        Debug.Log("UploadClicked");
+                        //UploadToDB();
 
+                    }
+                    else if(hit.collider.CompareTag("ViewCourse"))
+                    {
+                        if(PlayerPrefs.GetString("LoggedIn") == "true")
+                        {
+                            SceneManager.LoadScene("ViewCourse");
+
+                        }
+                        else if(PlayerPrefs.GetString("LoggedIn") == "false")
+                        {
+                            SceneManager.LoadScene("logInMenu");
+                        }
+                        
+                    }
+                    // this else statement is for choosing modules inside of a gate
+                    else if(hit.collider.CompareTag("Assignment") || hit.collider.CompareTag("Assessment"))
+                    {
+                        if(PlayerPrefs.GetString("ModuleSelect") == "true")
+                        {
+                            // variable assignment
+                            GameObject hitObject = hit.collider.gameObject;
+                            Material hitMaterial = hitObject.GetComponent<MeshRenderer>().sharedMaterial;
+                            Material glowMaterial = Resources.Load("Materials/Glow_Material", typeof(Material)) as Material;
+                            Material assignmentMaterial = Resources.Load("Materials/Assignment_Material", typeof(Material)) as Material;
+                            Material assessmentMaterial = Resources.Load("Materials/Test_Material", typeof(Material)) as Material;
+                            // turn off the lights
+                            Light[] ligths = FindObjectsOfType(typeof(Light)) as Light[];
+                            foreach (Light ligth in ligths) 
+                            {
+                                ligth.intensity = 1;
+                            }
+                            RenderSettings.ambientLight = Color.black;
+                            // make material adjustments
+                            //selecting object
+                            if(hitMaterial != glowMaterial)
+                            {
+                                
+                                hitObject.GetComponent<MeshRenderer>().sharedMaterial = glowMaterial;
+                                Debug.Log(hitObject.GetComponent<MeshRenderer>().sharedMaterial);
+                                // do stuff here
+                                if(hitObject.tag == "Assignment")
+                                {
+                                    Debug.Log("Changing " + hitObject.tag + " to glowing");
+                                    hitObject.GetComponent<AssignmentAttributes>().LevelNum = objectToBeEdited.GetComponent<Gate>().LevelNum;
+                                }
+                                else if(hitObject.tag == "Assessment")
+                                {
+                                    Debug.Log("Changing " + hitObject.tag + " to glowing");
+                                    hitObject.GetComponent<AssessmentAttributes>().LevelNum = objectToBeEdited.GetComponent<Gate>().LevelNum;
+
+                                }
+
+
+                            }
+                            //deselecting object
+                            else if(hitMaterial == glowMaterial)
+                            {
+                                if(hitObject.tag == "Assignment")
+                                {
+                                    changeMaterial(hitObject, assignmentMaterial);
+                                    hitObject.GetComponent<AssignmentAttributes>().LevelNum = 0;
+                                    
+                                }
+                                else if(hitObject.tag == "Assessment")
+                                {
+                                    changeMaterial(hitObject, assessmentMaterial);
+                                    hitObject.GetComponent<AssessmentAttributes>().LevelNum = 0;
+                                }
+
+                            }
+
+                        }
                     }
                     else
                     {
-                    //if you click anywhere...the edit/delete should go away
+                     //if you click anywhere...the edit/delete should go away
                     tempObject = GameObject.Find("EditButtonIcon");
->>>>>>> Stashed changes
+
+                    tempObject.transform.position = new Vector3(0,0,10000);
+                    changeMaterial(tempObject, Resources.Load("Materials/Transparent_Material", typeof(Material)) as Material);
+                    tempObject = GameObject.Find("DeleteButtonIcon");
+                    tempObject.transform.position = new Vector3(0,0,10300);
+                    changeMaterial( tempObject,Resources.Load("Materials/Transparent_Material", typeof(Material)) as Material);
+
+                    }
 
 
                 }
-            } else {
+            } else if(checkWithinBounds(selectedObject)) {
                 Vector3 position = new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.WorldToScreenPoint(selectedObject.transform.position).z);
                 Vector3 worldPosition = Camera.main.ScreenToWorldPoint(position);
-                spawnObject(selectedObject, iconObject.x, iconObject.y, iconObject.z);
-                                    
-                selectedObject.transform.position = new Vector3(worldPosition.x, 0f, worldPosition.z);
-
+                spawn3HighlightsAroundPositon(findHighlightWithinBounds(selectedObject).transform.position, selectedObject);
+                changeHighlight(selectedObject);
+                //this moves it back into legend//
+                // u must find tag of selected object u just dragged...and move accordingly
+                selectedObject.transform.position = new Vector3(iconObject.x,iconObject.y,iconObject.z);
+                //-----------------------------//
                 selectedObject = null;
                 Cursor.visible = true;
+                unHighlightAreas();
             }
+            else{
+                Vector3 position = new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.WorldToScreenPoint(selectedObject.transform.position).z);
+                Vector3 worldPosition = Camera.main.ScreenToWorldPoint(position);
+                selectedObject.transform.position = new Vector3(iconObject.x , 0f, iconObject.z);
+                selectedObject = null;
+                Cursor.visible = true;
+                unHighlightAreas();
+            }
+
         }
 
         if(selectedObject != null) {
             Vector3 position = new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.WorldToScreenPoint(selectedObject.transform.position).z);
             Vector3 worldPosition = Camera.main.ScreenToWorldPoint(position);
             selectedObject.transform.position = new Vector3(worldPosition.x, .25f, worldPosition.z);
-<<<<<<< Updated upstream
-=======
         }
         //-----------------EDIT ICON----------------//
         //
@@ -134,7 +285,7 @@ public class Grabber : MonoBehaviour {
             RaycastHit hit = CastRay();
             if(hit.collider != null) 
             {
-                    PlayerPrefs.SetString("FilePath", Application.persistentDataPath + "/UploadData/" 
+                    PlayerPrefs.SetString("FilePath", Application.persistentDataPath + "/" + PlayerPrefs.GetString("ClassTag") +"/"
                     + hit.collider.gameObject.transform.position.x.ToString() +"." 
                     + hit.collider.gameObject.transform.position.y.ToString() + "."
                     + hit.collider.gameObject.transform.position.z.ToString() +".json");
@@ -160,6 +311,10 @@ public class Grabber : MonoBehaviour {
                     tempObject.GetComponent<Renderer>().material = newMaterial;
 
                     objectToBeEdited = selectedObject;
+                    // we need to save the gate object just in case
+                    // while the user is clicking the icons to be added to the level 
+                    // they can right click on anything and it would mess up saving the gate
+                    gateObject = objectToBeEdited;
 
                     selectedObject = null;
                 }
@@ -187,7 +342,7 @@ public class Grabber : MonoBehaviour {
 
                     selectedObject = null;
                 }
-                else if(hit.collider.CompareTag("Test"))
+                else if(hit.collider.CompareTag("Assessment"))
                 {
                     selectedObject = hit.collider.gameObject;
                     //get cam position
@@ -205,16 +360,13 @@ public class Grabber : MonoBehaviour {
                     tempObject.transform.position = newPosition;
                     newMaterial = Resources.Load("Materials/Test_Material", typeof(Material)) as Material;
                     tempObject.GetComponent<Renderer>().material = newMaterial;
->>>>>>> Stashed changes
 
+                    objectToBeEdited = selectedObject;
 
-            if (Input.GetMouseButtonDown(1)) {
-                selectedObject.transform.rotation = Quaternion.Euler(new Vector3(
-                    selectedObject.transform.rotation.eulerAngles.x,
-                    selectedObject.transform.rotation.eulerAngles.y + 90f,
-                    selectedObject.transform.rotation.eulerAngles.z));
-            }
+                    selectedObject = null;
+                }
         }
+    }
     }
 
     private RaycastHit CastRay() {
@@ -234,16 +386,14 @@ public class Grabber : MonoBehaviour {
 
         return hit;
     }
-<<<<<<< Updated upstream
-
-    public void spawnObject(GameObject Object, int x, int y, int z)
+    public void spawnObject(GameObject Object, float x, float y, float z)
     {
         var newSquare = Instantiate(
             Object, 
             new Vector3(x, y, z), 
             Quaternion.identity);
-=======
-    public void spawnHighlight(Vector3 position, GameObject selectedObject)
+    } 
+    public void spawn3HighlightsAroundPositon(Vector3 position, GameObject selectedObject)
     {
         Vector3 left = new Vector3(position.x - 250, position.y, position.z);
         Vector3 right = new Vector3(position.x + 250, position.y, position.z);
@@ -282,9 +432,6 @@ public class Grabber : MonoBehaviour {
         {
             Destroy(getObjectByLocation(down));
         }
-
-
-
     }
 
 
@@ -303,16 +450,15 @@ public class Grabber : MonoBehaviour {
         highlightObject.GetComponent<Highlighter>().x = x;
         highlightObject.GetComponent<Highlighter>().y = y;
         highlightObject.GetComponent<Highlighter>().z = z;
-        Debug.Log("highlight spawned");
-
     }
 
+    //this unhighlights the highlight objects
     public void highlightAreas()
     {
         Light[] ligths = FindObjectsOfType(typeof(Light)) as Light[];
         foreach (Light ligth in ligths) 
         {
-            ligth.enabled = false;
+            ligth.intensity = 1;
         }
         RenderSettings.ambientLight = Color.black;
 
@@ -330,7 +476,7 @@ public class Grabber : MonoBehaviour {
         Light[] ligths = FindObjectsOfType(typeof(Light)) as Light[];
         foreach (Light ligth in ligths) 
         {
-            ligth.enabled = true;
+            ligth.intensity = 2;
         }
         RenderSettings.ambientLight = Color.white;
         /*GameObject[]*/ var objects = GameObject.FindGameObjectsWithTag("Highlight");
@@ -339,6 +485,32 @@ public class Grabber : MonoBehaviour {
             Material transparentMaterial = Resources.Load("Materials/Transparent_Material", typeof(Material)) as Material;
             obj.GetComponent<Renderer>().material = transparentMaterial;
         }
+    }
+
+    public void UnHighlightIcons()
+    {
+        Light[] ligths = FindObjectsOfType(typeof(Light)) as Light[];
+        foreach (Light ligth in ligths) 
+        {
+            ligth.intensity = 2;
+        }
+        RenderSettings.ambientLight = Color.white;
+        //unhighlight assignments
+        /*GameObject[]*/ var assignmentObjects = GameObject.FindGameObjectsWithTag("Assignment");
+        foreach (var obj in assignmentObjects)
+        {
+            Material transparentMaterial = Resources.Load("Materials/Assignment_Material", typeof(Material)) as Material;
+            obj.GetComponent<Renderer>().material = transparentMaterial;
+        }
+        //unhighlight assessments
+        /*GameObject[]*/ var assessmnetObjects = GameObject.FindGameObjectsWithTag("Assessment");
+        foreach (var obj in assessmnetObjects)
+        {
+            Material transparentMaterial = Resources.Load("Materials/test_Material", typeof(Material)) as Material;
+            obj.GetComponent<Renderer>().material = transparentMaterial;
+        }
+
+
     }
 
 
@@ -357,7 +529,7 @@ public class Grabber : MonoBehaviour {
             highlight.GetComponent<MeshFilter>().mesh = Resources.Load("Materials/Fortress_Gate", typeof(Mesh)) as Mesh;
             //scale and rotate
             highlight.transform.localScale = new Vector3(10f,10f,10f);
-            highlight.transform.Rotate(-90f,0f,0f);
+            highlight.transform.rotation = Quaternion.Euler(new Vector3(-90f,0f,0f));
             //add a new script
             highlight.AddComponent<Gate>();
             // add a new mesh collider
@@ -366,34 +538,60 @@ public class Grabber : MonoBehaviour {
             Vector3 position = highlight.transform.position;
             highlight.GetComponent<Gate>().x = position.x;
             highlight.GetComponent<Gate>().z = position.z;
-            highlight.tag = "Gate";           
+            highlight.tag = "Gate";  
+            //now assign the level number to the gate
+            highlight.GetComponent<Gate>().LevelNum = GetGateLevelNumber();         
         }
         else if(tag == "Test Legend")
         {
             changeMaterial(highlight,Resources.Load("Materials/Test_Material", typeof(Material)) as Material);
             Destroy(highlight.GetComponent<Highlighter>());
-            highlight.AddComponent<Test>();
+            highlight.AddComponent<AssessmentAttributes>();
             Vector3 position = highlight.transform.position;
-            highlight.GetComponent<Test>().x = position.x;
-            highlight.GetComponent<Test>().z = position.z;
-            highlight.tag = "Test";          
+            highlight.GetComponent<AssessmentAttributes>().x = position.x;
+            highlight.GetComponent<AssessmentAttributes>().z = position.z;
+            highlight.tag = "Assessment";          
         }
         else if(tag == "Assignment Legend")
         {
             // Material[] materials = {Resources.Load("Materials/ThickBook", typeof(Material)) as Material,
             // Resources.Load("Materials/ThickBookPages", typeof(Material)) as Material};
-
-
             changeMaterial(highlight,Resources.Load("Materials/Assignment_Material", typeof(Material)) as Material);
 
             //change it to book
             Destroy(highlight.GetComponent<Highlighter>());
-            highlight.AddComponent<Assignment>();
+            highlight.AddComponent<AssignmentAttributes>();
             Vector3 position = highlight.transform.position;
-            highlight.GetComponent<Assignment>().x = position.x;
-            highlight.GetComponent<Assignment>().z = position.z;
+            highlight.GetComponent<AssignmentAttributes>().x = position.x;
+            highlight.GetComponent<AssignmentAttributes>().z = position.z;
             highlight.tag = "Assignment";            
         }
+    }
+
+    //simple function that loops through gates and gets the appropriate level number
+    // in order to assign it to a newly placed gate
+    public int GetGateLevelNumber()
+    {
+        int index = 0;
+        /*GameObject[]*/ var objects = GameObject.FindGameObjectsWithTag("Gate");
+        foreach (var highlights in objects)
+        {
+            index++;
+        }
+        return index;
+    }
+
+    public int GetLevelNumber(GameObject iconObj)
+    {
+        if(iconObj.tag == "Assignment")
+        {
+
+        }
+        else if(iconObject.tag == "Assessment")
+        {
+
+        }
+        return 0;
     }
 
     // simple fuynction that loops through highlighted objects to check if
@@ -468,7 +666,7 @@ public class Grabber : MonoBehaviour {
 
     public void changeMaterial(GameObject gameobject, Material material)
     {
-        gameobject.GetComponent<Renderer>().material = material;
+        gameobject.GetComponent<MeshRenderer>().sharedMaterial = material;
 
     }
 
@@ -500,14 +698,14 @@ public class Grabber : MonoBehaviour {
             Vector3 position = gameObject.transform.position;
             position.y = position.y-100;
             Camera.main.transform.position = position;
-            SceneManager.LoadScene(11, LoadSceneMode.Additive);
+            SceneManager.LoadScene("EditAssignmentIcon", LoadSceneMode.Additive);
 
         }
         else if(gameObject.tag == "EditButtonIcon" && otherObject.tag == "Gate")
         {
 
         }
-        else if(gameObject.tag == "EditButtonIcon" && otherObject.tag == "Test")
+        else if(gameObject.tag == "EditButtonIcon" && otherObject.tag == "Assessment")
         {
             // get object location to move camera over
             Vector3 position = gameObject.transform.position;
@@ -517,104 +715,290 @@ public class Grabber : MonoBehaviour {
         }
     }
 
-    public void CallUpload()
+    public void changeMesh(GameObject objectToBeEdited)
     {
-        StartCoroutine(UploadToDB());
+        if(objectToBeEdited.tag == "Gate")
+        {
+            objectToBeEdited.GetComponent<MeshFilter>().mesh = tempMesh;
+            objectToBeEdited.GetComponent<MeshCollider>().sharedMesh = null;
+            objectToBeEdited.GetComponent<MeshCollider>().sharedMesh = tempMesh;
+            objectToBeEdited.transform.localScale = new Vector3 (100f, 100f, 100f);
+            Debug.Log(tempMesh.name);
+        }
     }
 
-    IEnumerator UploadToDB()
+    public void StripAttributeScript(GameObject objectToBeEdited)
     {
-        //JsonObject.MODULE.ASSESSMENTS.QUESTION.questions[PlayerPrefs.GetInt("QuestionNumber") - 1];
-        string postURL = "http://localhost/UnityApp/Upload.php";
-        string FilePath = Application.persistentDataPath + "/UploadData/";
-        foreach(string file in files)
+        if(objectToBeEdited.tag == "Gate")
         {
-            FilePath += file;
-            using( var fs = File.Open(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                using(var sr = new StreamReader(fs))
-                {
-                var json = sr.ReadToEnd();                                                                                                                                                                                                                                                                                                                                  
-                var JsonObject = JsonUtility.FromJson<CourseData>(json);
-        List<IMultipartFormSection> wwwForm = new List<IMultipartFormSection>();
-        wwwForm.Add(new MultipartFormDataSection("NameOfAssessment", JsonObject.MODULE.ASSESSMENT.AssessmentName));
-        wwwForm.Add(new MultipartFormDataSection("DueDate", JsonObject.MODULE.ASSESSMENT.DueDate));
-        foreach(QuestionObj question in JsonObject.MODULE.ASSESSMENT.QUESTION.questions)
+            Destroy(objectToBeEdited.GetComponent<Gate>());
+        }
+        else if(objectToBeEdited.tag == "Assignment")
         {
-            wwwForm.Add(new MultipartFormDataSection("QuestionNumber", question));
-            wwwForm.Add(new MultipartFormDataSection("QuestionName", question));
-            wwwForm.Add(new MultipartFormDataSection("QuestionType", question));
+            Destroy(objectToBeEdited.GetComponent<AssignmentAttributes>());
+        }
+        else if(objectToBeEdited.tag == "Assessment")
+        {
+            Destroy(objectToBeEdited.GetComponent<AssessmentAttributes>());
+        }
+    }
 
-            foreach(MultipleChoice choice in question.multipleChoices)
-            {
-                wwwForm.Add(new MultipartFormDataSection("AnswerNumber", choice.AnswerNumber));
-                wwwForm.Add(new MultipartFormDataSection("AnswerNumber", choice.AnswerName));
-                wwwForm.Add(new MultipartFormDataSection("AnswerNumber", choice.CorrectAnswer));
-                wwwForm.Add(new MultipartFormDataSection("AnswerNumber", choice.Points));
-            }
-            foreach(Fill_in_Blank choice in question.fillBlankChoices)
-            {
-                wwwForm.Add(new MultipartFormDataSection("AnswerNumber", choice.QuestionName));
-                wwwForm.Add(new MultipartFormDataSection("AnswerNumber", choice.QuestionAnswer));
+    public void DeleteFileAtLocation(string location)
+    {
+        string FilePath = Application.persistentDataPath + "/" + PlayerPrefs.GetString("ClassTag")+ "/" + location + ".json";
+        Debug.Log(FilePath);
+        File.Delete(FilePath);
+    }
+
+    // public void CallUpload()
+    // {
+    //     StartCoroutine(UploadToDB());
+    // }
+
+    // IEnumerator UploadToDB()
+    // {
+    //     //JsonObject.MODULE.ASSESSMENTS.QUESTION.questions[PlayerPrefs.GetInt("QuestionNumber") - 1];
+    //     string postURL = "http://localhost/UnityApp/Upload.php";
+    //     string FilePath = Application.persistentDataPath + "/UploadData/";
+    //     foreach(string file in files)
+    //     {
+    //         FilePath += file;
+    //         using( var fs = File.Open(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+    //         {
+    //             using(var sr = new StreamReader(fs))
+    //             {
+    //             var json = sr.ReadToEnd();                                                                                                                                                                                                                                                                                                                                  
+    //             var JsonObject = JsonUtility.FromJson<CourseData>(json);
+    //     List<IMultipartFormSection> wwwForm = new List<IMultipartFormSection>();
+    //     wwwForm.Add(new MultipartFormDataSection("NameOfAssessment", JsonObject.MODULE.ASSESSMENT.AssessmentName));
+    //     wwwForm.Add(new MultipartFormDataSection("DueDate", JsonObject.MODULE.ASSESSMENT.DueDate));
+    //     foreach(QuestionObj question in JsonObject.MODULE.ASSESSMENT.QUESTION.questions)
+    //     {
+    //         wwwForm.Add(new MultipartFormDataSection("QuestionNumber", question));
+    //         wwwForm.Add(new MultipartFormDataSection("QuestionName", question));
+    //         wwwForm.Add(new MultipartFormDataSection("QuestionType", question));
+
+    //         foreach(MultipleChoice choice in question.multipleChoices)
+    //         {
+    //             wwwForm.Add(new MultipartFormDataSection("AnswerNumber", choice.AnswerNumber));
+    //             wwwForm.Add(new MultipartFormDataSection("AnswerNumber", choice.AnswerName));
+    //             wwwForm.Add(new MultipartFormDataSection("AnswerNumber", choice.CorrectAnswer));
+    //             wwwForm.Add(new MultipartFormDataSection("AnswerNumber", choice.Points));
+    //         }
+    //         foreach(Fill_in_Blank choice in question.fillBlankChoices)
+    //         {
+    //             wwwForm.Add(new MultipartFormDataSection("AnswerNumber", choice.QuestionName));
+    //             wwwForm.Add(new MultipartFormDataSection("AnswerNumber", choice.QuestionAnswer));
                
-            }
-        }
-        using (UnityWebRequest www = UnityWebRequest.Post(postURL, wwwForm))
-        {
-            yield return www.SendWebRequest();
-            //string text = www.downloadHandler.text;
-            // string[] response = text.Split(' ');
-            // string Role = response[0];
-            // string Username = response[1];
-            // string Password = response[2];
-            // Debug.Log(Role);
-            // if (www.result == UnityWebRequest.Result.Success)
-            // {
-            //     if(nameField.text == Username && passwordField.text == Password)
-            //     {
-            //         DbManager.username = Username;
+    //         }
+    //     }
+    //     using (UnityWebRequest www = UnityWebRequest.Post(postURL, wwwForm))
+    //     {
+    //         yield return www.SendWebRequest();
+    //         //string text = www.downloadHandler.text;
+    //         // string[] response = text.Split(' ');
+    //         // string Role = response[0];
+    //         // string Username = response[1];
+    //         // string Password = response[2];
+    //         // Debug.Log(Role);
+    //         // if (www.result == UnityWebRequest.Result.Success)
+    //         // {
+    //         //     if(nameField.text == Username && passwordField.text == Password)
+    //         //     {
+    //         //         DbManager.username = Username;
 
-            //         DbManager.Role = Role;
+    //         //         DbManager.Role = Role;
 
-            //         if(Role == "superadmin")
-            //         {
-            //             UnityEngine.SceneManagement.SceneManager.LoadScene(4);
-            //         }
-            //         else if(Role == "admin")
-            //         {
-            //             UnityEngine.SceneManagement.SceneManager.LoadScene(6);
-            //         }
-            //         else
-            //         {
-            //         UnityEngine.SceneManagement.SceneManager.LoadScene(0);
-            //         }
+    //         //         if(Role == "superadmin")
+    //         //         {
+    //         //             UnityEngine.SceneManagement.SceneManager.LoadScene(4);
+    //         //         }
+    //         //         else if(Role == "admin")
+    //         //         {
+    //         //             UnityEngine.SceneManagement.SceneManager.LoadScene(6);
+    //         //         }
+    //         //         else
+    //         //         {
+    //         //         UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+    //         //         }
 
-            //     }
+    //         //     }
 
-            // }
-            // else
-            // {
-            //     Debug.Log(nameField.text);
-            //     Debug.Log(passwordField.text);
-            //     Debug.Log("User Log in failed:" + text);
-            // }
-        }
+    //         // }
+    //         // else
+    //         // {
+    //         //     Debug.Log(nameField.text);
+    //         //     Debug.Log(passwordField.text);
+    //         //     Debug.Log("User Log in failed:" + text);
+    //         // }
+    //     }
                 
 
 
+    //             }
+    //         }
+    //     }
+    // }
+
+   
+
+    public void viewCourseButton()
+    {
+        
+    }
+    //-----------------------FILE DOWNLOAD SECTION---------------------//
+    //-----------------------------------------------------------------//
+    public void SaveGate(GameObject gateObject)
+    {
+        SaveDataHandler save = new SaveDataHandler();
+
+        save._Course.CourseName = PlayerPrefs.GetString("ClassTag");
+
+        save._Course.Type = "Gate";
+
+        save._Course.MODULE.moduleNumber = gateObject.GetComponent<Gate>().LevelNum;
+
+        PlayerPrefs.SetString("FilePath", Application.persistentDataPath + "/" + PlayerPrefs.GetString("ClassTag") +"/"
+        + gateObject.transform.position.x.ToString() +"." 
+        + gateObject.transform.position.y.ToString() + "."
+        + gateObject.transform.position.z.ToString() +".json");
+
+        save.SaveGateIntoJson();
+        Debug.Log("Save Gate Called");
+
+
+    }
+
+
+    //------------------------FILE UPLOAD SECTION-----------------------//
+    //------------------------------------------------------------------//
+
+    //this function loads objects if they exist in your local folder already
+    public void LoadObjectsFromJson()
+    {
+
+        Vector3 location;
+        string folderPath = Application.persistentDataPath + "/" + PlayerPrefs.GetString("ClassTag");
+        string[] locationArray;
+        string[] nameOfFiles = LoopThroughFolder(folderPath);
+        GameObject parent;
+
+        //this is a long loop that calls multiple methods
+        // it spawns in the objects in the scene based on the file location
+        foreach(string file in nameOfFiles)
+        {
+            locationArray = SplitNameToGetLocation(file);
+            using (var fs = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                using (var sr = new StreamReader(fs))
+                {
+                    var json = sr.ReadToEnd();
+                    var JsonObject = JsonUtility.FromJson<SaveDataHandler.CourseData>(json);
+                    string typeOfObject = JsonObject.Type;
+                    int levelNum = JsonObject.MODULE.moduleNumber;
+                    location = new Vector3(int.Parse(locationArray[0]),int.Parse(locationArray[1]), int.Parse(locationArray[2]));
+                    GameObject newObject =  Instantiate(objFromLoad, location, Quaternion.identity);
+                    newObject.tag = typeOfObject;
+                    ChangeNewObjectSpawned(newObject, levelNum);
+                    newObject.transform.position = location;
+                    spawn3HighlightsAroundPositon(location, newObject);
+                    //now check to see if it spawned on a highlight
+                    foreach (GameObject go in Resources.FindObjectsOfTypeAll(typeof(GameObject)) as GameObject[])
+                    {
+                        if (Vector3.Distance(go.transform.position, location) < 75)
+                        {
+                            if( go.tag == "Highlight")
+                            {
+                                //GameObject highlight = getObjectByLocation(location);
+                                Destroy(go);
+                            }
+                        }
+                    }
                 }
             }
         }
     }
 
-    public string[] loopThroughFolder()
+    public string[] LoopThroughFolder(string folderPath)
     {
-        string folderPath = Application.persistentDataPath + "/UploadData";
-        string[] files = 
-        Directory.GetFiles(folderPath, "*ProfileHandler.cs", SearchOption.AllDirectories);
+        //Debug.Log(PlayerPrefs.GetString("ClassTag"));
+        string[] files = Directory.GetFiles(folderPath, "*.json", SearchOption.AllDirectories);
+        return files;
         
 
->>>>>>> Stashed changes
     }
 
+    //this will return the file name split with location
+    public string[] SplitNameToGetLocation(string FileName)
+    {
+        string[] returnArray;
+        string stringWithJson = FileName.Split('/').Last();
+        stringWithJson = stringWithJson.Split('\\')[1];
+        string locationName = stringWithJson.Split(new string[] { ".json" }, StringSplitOptions.None)[0];
+        returnArray = locationName.Split('.');
+        return returnArray;
+    }
+
+
+    // This function is like change highlight, but it doesn't check
+    // for highlight to be replaced
+    public void ChangeNewObjectSpawned(GameObject newObject, int levelNum)
+    {
+        string tag = newObject.tag;
+        if (tag == "Gate")
+        {
+            changeMaterial(newObject, Resources.Load("Materials/BRICK", typeof(Material)) as Material);
+            //strip the old model attached
+            Destroy(newObject.GetComponent<Highlighter>());
+            //change it into a Gate
+            newObject.GetComponent<MeshFilter>().mesh = Resources.Load("Materials/Fortress_Gate", typeof(Mesh)) as Mesh;
+            //scale and rotate
+            newObject.transform.localScale = new Vector3(10f, 10f, 10f);
+            newObject.transform.rotation = Quaternion.Euler(new Vector3(-90f,0f,0f));
+            //add a new script
+            newObject.AddComponent<Gate>();
+            newObject.GetComponent<Gate>().LevelNum = levelNum;
+            // add a new mesh collider
+            newObject.GetComponent<MeshCollider>().sharedMesh = Resources.Load("Materials/Fortress_Gate", typeof(Mesh)) as Mesh;
+            //update the position in the model (only need to do x,z)
+            Vector3 position = newObject.transform.position;
+            newObject.GetComponent<Gate>().x = position.x;
+            newObject.GetComponent<Gate>().z = position.z;
+        }
+        else if (tag == "Assessment")
+        {
+            changeMaterial(newObject, Resources.Load("Materials/Test_Material", typeof(Material)) as Material);
+            Destroy(newObject.GetComponent<Highlighter>());
+            newObject.AddComponent<AssessmentAttributes>();
+            Vector3 position = newObject.transform.position;
+            newObject.GetComponent<AssessmentAttributes>().x = position.x;
+            newObject.GetComponent<AssessmentAttributes>().z = position.z;
+            newObject.GetComponent<AssessmentAttributes>().LevelNum = levelNum;
+        }
+        else if (tag == "Assignment")
+        {
+            // Material[] materials = {Resources.Load("Materials/ThickBook", typeof(Material)) as Material,
+            // Resources.Load("Materials/ThickBookPages", typeof(Material)) as Material};
+            changeMaterial(newObject, Resources.Load("Materials/Assignment_Material", typeof(Material)) as Material);
+
+            //change it to book
+            Destroy(newObject.GetComponent<Highlighter>());
+            newObject.AddComponent<AssignmentAttributes>();
+            Vector3 position = newObject.transform.position;
+            newObject.GetComponent<AssignmentAttributes>().x = position.x;
+            newObject.GetComponent<AssignmentAttributes>().z = position.z;
+            newObject.GetComponent<AssignmentAttributes>().LevelNum = levelNum;
+        }
+    }
+
+    public string ConvertLocationToString(Vector3 location)
+    {
+        string returnString = "";
+        returnString = location.x +"."+location.y+"."+location.z;
+        return returnString;
+    }
 }
+
+    
+
+
