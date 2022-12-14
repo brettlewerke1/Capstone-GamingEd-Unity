@@ -1,4 +1,5 @@
 <?php
+// CHANGE $con= to new server hosting database
     $con = mysqli_connect('gaminged-db.czq2j2udebs7.us-west-2.rds.amazonaws.com', 'superAdmin', 'ghahyat8', 'RTX');
 
     //check for connection success
